@@ -73,8 +73,8 @@ def next_state(transition):
 			return i
 
 
-def simulator(s, policy, h, expert, reward):
-	# return value from taking action defined by the policy for the given state and horizon
+# return reward and next state from taking action defined by the policy for the given state
+def simulator(s, policy, expert, reward):
 	action = policy[s]
 	transition = expert[action][s]   # returns transition function [1, 0, 0, 0]
 	s_next = next_state(transition)
