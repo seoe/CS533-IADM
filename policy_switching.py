@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 'USER DEFINED PARAMETERS'
 num_models = 2  # number of expert models
 num_states = 4  # number of states
-horizon = 8
+horizon = 20
 w = 4  # run sim(s, policy, h) w times for each policy
 
 
@@ -67,7 +67,7 @@ def update_belief(belief, _rewards):
 
 
 if __name__ == '__main__':
-	state, output_policy, true_expert,  = 0, [], []  # start in state 0 -- could change to another state
+	state, output_policy, true_expert, final_policy = 0, [], [], []  # start in state 0 -- could change to another state
 	reward_from_act = np.zeros(num_models)
 	expert_models, policy, state_rewards, belief = sim.init_models(num_models, num_states)
 
@@ -79,9 +79,11 @@ if __name__ == '__main__':
 
 		output_policy.append((state, (p, int(policy[p][state])), int(next_state)))  # (state, (policy, action), next state)
 		true_expert.append(optimal_model)  # returns expert model with highest reward after applying action from chosen policy
+		final_policy.append(int(policy[p][state]))
 		state = next_state
 
 	print 'true_expert = ', true_expert
 	print
 	print 'output_policy = ', output_policy
-
+	print
+	print 'final policy = ', final_policy
