@@ -34,7 +34,7 @@ def policy_switching(state, expert, w, policy, horizon, rewards):
 	for i in range(0, num_policies):  # iterate through each policy
 		val = 0
 		for j in range(0, w):  # perform n
-			val += sim.simulator(state, policy[i], horizon, expert, rewards)
+			val += sim.simulator(state, policy[i], horizon, expert, rewards)[1]
 		value[i] = val
 
 	return np.argmax(value)
@@ -42,10 +42,12 @@ def policy_switching(state, expert, w, policy, horizon, rewards):
 
 def update_models(state, expert_models, p, horizon, running_value, num_models):
 	value = np.zeros(num_models)
+	next_state = np.zeros(num_models)
 	for i in range(0, num_models):
-		value[i] = sim.simulator(state, p, horizon, expert_models[i], rewards)
-		running_value[i] += value[i]
-	return np.argmax(value), running_value
+		next_state[i], value[i] = sim.simulator(state, p, horizon, expert_models[i], rewards)
+		# running_value[i] += value[i]
+	opt_model = np.argmax(value)
+	return next_state[opt_model], opt_model #, running_value
 
 
 def update_belief(belief, opt_model):
@@ -56,20 +58,21 @@ def update_belief(belief, opt_model):
 
 
 if __name__ == '__main__':
-	state, output_policy, best_expert = 0, [], []  # start in state 0 -- could change to another state
+	state, output_policy, true_expert = 0, [], []  # start in state 0 -- could change to another state
 	running_value = np.zeros(num_models)
 	expert_models, policy, rewards, belief = sim.init_models(num_models, num_states)
 
 	for horizon in range(0, policy_length):
 		ex = _belief(belief, num_models)  # returns expert model to use
 		p = policy_switching(state, expert_models[ex], w, policy, horizon, rewards)  # best policy from policy switching
-		output_policy.append(policy[p][horizon])
-		optimal_model, running_value = update_models(state, expert_models, policy[p], horizon, running_value, num_models)
-		best_expert.append(optimal_model)  # returns expert model with highest value after applying action from best policy
+		next_state, optimal_model = update_models(state, expert_models, policy[p], horizon, running_value, num_models)  # applies policy to all experts
+		output_policy.append((state, p, int(next_state)))
+		true_expert.append(optimal_model)  # returns expert model with highest value after applying action from best policy
 		update_belief(belief, optimal_model)  # update belief
+		state = next_state
 	# how do we want to update belief state? increment best expert and decrement others equally?
 
-	print 'best_expert = ', best_expert
+	print 'best_expert = ', true_expert
 	print
 	print 'output_policy = ', output_policy
 

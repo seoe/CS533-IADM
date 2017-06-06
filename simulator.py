@@ -50,11 +50,12 @@ def expert1_init(states):
 	return ex1
 
 
-def policy_init():
-	policy = np.zeros((3, 8))
-	policy[0] = [1, 1, 1, 2, 2, 2, 2, 2]
-	policy[1] = [2, 2, 2, 2, 2, 1, 1, 1]
-	policy[2] = [1, 2, 1, 2, 1, 2, 1, 2]
+def policy_init(states):
+	num_policies = 3
+	policy = np.zeros((num_policies, states))
+	policy[0] = [1, 1, 1, 1]
+	policy[1] = [2, 2, 2, 2]
+	policy[2] = [1, 2, 1, 2]
 	return policy
 
 
@@ -74,7 +75,7 @@ def next_state(transition):
 
 def simulator(s, policy, h, expert, reward):
 	# return value from taking action defined by the policy for the given state and horizon
-	action = policy[h]
+	action = policy[s]
 	transition = expert[action][s]   # returns transition function [1, 0, 0, 0]
 	s_next = next_state(transition)
 	return s_next, reward[s_next]
@@ -93,7 +94,7 @@ def init_models(num_models, num_states):
 	ex1 = expert1_init(num_states)
 	expert_models[0] = ex0
 	expert_models[1] = ex1
-	policy = policy_init()
+	policy = policy_init(num_states)
 	rewards = reward_init(num_states)
 	belief = np.zeros(num_models)
 
