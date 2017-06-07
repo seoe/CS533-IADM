@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 'USER DEFINED PARAMETERS'
 num_models = 2  # number of expert models
-num_states = 4  # number of states
+num_states = 12 #4  # number of states
 horizon = 20
 w = 4  # run sim(s, policy, h) w times for each policy
 

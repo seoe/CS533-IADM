@@ -4,11 +4,12 @@
 from random import randint
 from collections import *
 import numpy as np
+import read_file as rf
 
 
 def expert0_init(states):
-	ex0 = defaultdict(list)
-
+	ex0 = defaultdict(list)    
+	'''
 	# Action 1
 	act1 = np.zeros((states, states))
 	for i in range(0, states):
@@ -25,12 +26,16 @@ def expert0_init(states):
 			act2[i][i] = 0.5
 			act2[i][i+1] = 0.5
 	ex0[2] = act2
+	'''
+	T = rf.load_MDP('MDP1.csv', states)
+	for i in range(len(T)):	
+		ex0[i+1] = T[i]
 	return ex0
 
 
 def expert1_init(states):
 	ex1 = defaultdict(list)
-
+	'''
 	# Action 1
 	act1 = np.zeros((states, states))
 	for i in range(0, states):
@@ -47,15 +52,24 @@ def expert1_init(states):
 	for i in range(0, states):
 		act2[i][i] = 1
 	ex1[2] = act2
+	'''
+	T = rf.load_MDP('MDP2.csv', states)
+	for i in range(len(T)):
+		ex1[i+1] = T[i]
 	return ex1
 
 
 def policy_init(states):
 	num_policies = 3
 	policy = np.zeros((num_policies, states))
+	'''
 	policy[0] = [1, 1, 1, 1]
 	policy[1] = [2, 2, 2, 2]
 	policy[2] = [1, 2, 1, 2]
+	'''
+	policy[0] = [4, 4, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1]
+	policy[1] = [4, 4, 1, 4, 2, 4, 1, 4, 1, 4, 1, 4]
+	policy[2] = [3, 4, 3, 3, 3, 2, 3, 3, 2, 2, 3, 3]
 	return policy
 
 
@@ -83,8 +97,12 @@ def simulator(s, policy, expert, reward):
 
 def reward_init(states):
 	rewards = np.zeros(states)
+	'''
 	for i in range(0, states):
 		rewards[i] = 5 + i*5
+	'''
+	rewards = [350,250,250,150,100,100,80,8060,40,40,20,20]
+	rewards = np.array(rewards)
 	return rewards
 
 
