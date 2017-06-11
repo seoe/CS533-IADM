@@ -31,7 +31,7 @@ def _belief(b, num_models):
 
 # performs policy switching on one expert model (chosen from belief distribution)
 # returns best performing policy
-def policy_switching(start_state, experts, num_models, h, w, policy, state_rewards, _belief):
+def policy_switching(start_state, experts, num_models, w, h, policy, state_rewards, _belief):
 	num_policies = policy.shape[0]
 	reward_pol_ex = np.zeros((num_policies, num_models))
 	for pol in range(0, num_policies):  # iterate through each policy
