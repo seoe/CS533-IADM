@@ -67,6 +67,7 @@ def update_models(state, expert_models, p, num_models, state_rewards, real_world
 
 
 def update_models2(belief, state, expert_models, p, num_models, state_rewards):
+	_rewards = np.zeros(num_models)
 	next_state = np.zeros(num_models)
 	for i in range(0, num_models):
 		next_state[i], _rewards[i] = sim.simulator(state, p, expert_models[i], state_rewards)	
@@ -81,7 +82,7 @@ def update_models3(belief, state, expert_models, p, num_models, state_rewards):
 		transitions[i] = expert_models[i][action][state] * belief[i]
 	transition = sum(transitions)	
 	#print 'transitions = \n', transitions
-	#print 'transition = ', transition
+	#print 'transition = \n', transition
 	return int(np.random.choice(range(num_states), 1, p=transition)[0])
 
 
@@ -98,6 +99,7 @@ def update_belief(belief, expert_models, num_models, state, action, next_state):
 	expert_models_prob = np.zeros(num_models)
 	for i in range(0, num_models):
 		expert_models_prob[i] = expert_models[i][action][state][next_state]
+	#print 'expert_models_prob = \n', expert_models_prob
 	accu_blief = belief + np.multiply(expert_models_prob,belief)	
 	belief = accu_blief / sum(accu_blief)
 	return belief
@@ -115,7 +117,7 @@ if __name__ == '__main__':
 		p = policy_switching(state, expert_models, num_models, w, h, policy, state_rewards, belief)  # finds best policy from policy switching
 		
 		#next_state, reward_from_act = update_models(state, expert_models, policy[p], num_models, state_rewards, real_world_expert)  # applies policy to all experts
-		next_state = update_models3(belief, state, expert_models, policy[p], num_models, state_rewards)
+		next_state = update_models2(belief, state, expert_models, policy[p], num_models, state_rewards)
 		#belief = update_belief(belief, reward_from_act)  # update belief
 		action = policy[p][state]
 		belief = update_belief(belief, expert_models, num_models, state, action, next_state)  # update belief
