@@ -111,6 +111,8 @@ if __name__ == '__main__':
 	belief_history = np.zeros((horizon+1, num_models))	
 	expert_models, policy, state_rewards, belief = sim.init_models(num_models, num_states)
 	belief_history[0] = belief
+	trajectory = np.zeros(horizon+1)
+	trajectory[0] = state+1
 	
 	for hor in range(0, horizon):
 		# ex = _belief(belief, num_models)  # returns expert model to use -- based on belief distribution
@@ -118,6 +120,7 @@ if __name__ == '__main__':
 		
 		#next_state, reward_from_act = update_models(state, expert_models, policy[p], num_models, state_rewards, real_world_expert)  # applies policy to all experts
 		next_state = update_models2(belief, state, expert_models, policy[p], num_models, state_rewards)
+		trajectory[hor+1] = next_state+1
 		#belief = update_belief(belief, reward_from_act)  # update belief
 		action = policy[p][state]
 		belief = update_belief(belief, expert_models, num_models, state, action, next_state)  # update belief
@@ -125,7 +128,7 @@ if __name__ == '__main__':
 		
 		output_policy.append((state+1, (p+1, int(policy[p][state])), int(next_state+1)))  # (state, (policy, action), next state)
 		transition_policy.append((state+1, int(policy[p][state]), int(next_state+1)))
-		final_policy.append(int(action))
+		final_policy.append(int(action))		
 		state = next_state
 
 
@@ -136,16 +139,32 @@ if __name__ == '__main__':
 	print
 	print 'final policy = ', final_policy
 	print
+	print 'trajectory = ', trajectory
+	print
 	print 'belief_history = \n', belief_history
-
 	
-	plt.plot(belief_history[:,0], label='Expert 1', marker='*')
-	plt.plot(belief_history[:,1], label='Expert 2', marker='o')
-	plt.plot(belief_history[:,2], label='Expert 3', marker='^')
-	plt.plot(belief_history[:,3], label='Expert 4', marker='s')
+	
+	plt.figure(1)
 	plt.title('The belief in each expert model over time')
 	plt.xlabel('Time')
 	plt.ylabel('Belief in expert model')
+	plt.plot(belief_history[:,0], label='Expert 1', marker='*')
+	plt.plot(belief_history[:,1], label='Expert 2', marker='o')
+	plt.plot(belief_history[:,2], label='Expert 3', marker='^')
+	plt.plot(belief_history[:,3], label='Expert 4', marker='s')	
 	plt.legend(loc='upper left')
 	plt.grid(True)
+
+	plt.figure(2)
+	plt.title('Real world state transition via action')
+	plt.xlabel('Action')
+	plt.ylabel('State')
+	x = range(horizon+1)
+	my_xticks = [0]+final_policy
+	plt.xticks(x, my_xticks)
+	plt.ylim(0,12)
+	plt.plot(x, trajectory, marker='o')	
+	plt.grid(True)
 	plt.show()
+
+	plt.close()
