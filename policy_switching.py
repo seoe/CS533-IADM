@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 'USER DEFINED PARAMETERS'
 num_models = 4  # number of expert models
 num_states = 12  # number of states
-horizon = 15
-w = 10  # run sim(s, policy, h) w times for each policy
+horizon = 10
+w = 20  # run sim(s, policy, h) w times for each policy
 h = 10
 real_world_expert = 0  # must be a one of the expert models
 
@@ -67,13 +67,23 @@ def update_models(state, expert_models, p, num_models, state_rewards, real_world
 
 
 def update_models2(belief, state, expert_models, p, num_models, state_rewards):
-	_rewards = np.zeros(num_models)
 	next_state = np.zeros(num_models)
 	for i in range(0, num_models):
 		next_state[i], _rewards[i] = sim.simulator(state, p, expert_models[i], state_rewards)	
-	print 'belief = ', belief
+	#print 'belief = ', belief
 	return int(np.random.choice(next_state, 1, p=belief)[0])
-	
+
+
+def update_models3(belief, state, expert_models, p, num_models, state_rewards):
+	transitions = np.zeros((num_models, num_states))
+	for i in range(0, num_models):
+		action = p[state]
+		transitions[i] = expert_models[i][action][state] * belief[i]
+	transition = sum(transitions)	
+	#print 'transitions = \n', transitions
+	#print 'transition = ', transition
+	return int(np.random.choice(range(num_states), 1, p=transition)[0])
+
 
 # updates belief distribution based on rewards returned from update_models()
 # returns updated belief distribution
@@ -87,7 +97,7 @@ def update_belief(belief, expert_models, num_models, state, action, next_state):
 	'''
 	expert_models_prob = np.zeros(num_models)
 	for i in range(0, num_models):
-		expert_models_prob[i ] = expert_models[i][action][state][next_state]
+		expert_models_prob[i] = expert_models[i][action][state][next_state]
 	accu_blief = belief + np.multiply(expert_models_prob,belief)	
 	belief = accu_blief / sum(accu_blief)
 	return belief
@@ -105,14 +115,13 @@ if __name__ == '__main__':
 		p = policy_switching(state, expert_models, num_models, w, h, policy, state_rewards, belief)  # finds best policy from policy switching
 		
 		#next_state, reward_from_act = update_models(state, expert_models, policy[p], num_models, state_rewards, real_world_expert)  # applies policy to all experts
-		next_state = update_models2(belief, state, expert_models, policy[p], num_models, state_rewards)
-		
+		next_state = update_models3(belief, state, expert_models, policy[p], num_models, state_rewards)
 		#belief = update_belief(belief, reward_from_act)  # update belief
 		action = policy[p][state]
 		belief = update_belief(belief, expert_models, num_models, state, action, next_state)  # update belief
 		belief_history[hor+1] = belief		
 		
-		output_policy.append((state, (p, int(policy[p][state])), int(next_state)))  # (state, (policy, action), next state)
+		output_policy.append((state+1, (p+1, int(policy[p][state])), int(next_state+1)))  # (state, (policy, action), next state)
 		transition_policy.append((state+1, int(policy[p][state]), int(next_state+1)))
 		final_policy.append(int(action))
 		state = next_state
@@ -125,7 +134,8 @@ if __name__ == '__main__':
 	print
 	print 'final policy = ', final_policy
 	print
-	print 'final belief_history = ', belief_history
+	print 'belief_history = \n', belief_history
+
 	
 	plt.plot(belief_history[:,0], label='Expert 1', marker='*')
 	plt.plot(belief_history[:,1], label='Expert 2', marker='o')
