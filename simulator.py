@@ -7,58 +7,6 @@ import numpy as np
 import read_file as rf
 
 
-def expert0_init(states):
-	ex0 = defaultdict(list)    
-	'''
-	# Action 1
-	act1 = np.zeros((states, states))
-	for i in range(0, states):
-		act1[i][i] = 1
-	ex0[1] = act1
-
-	# Action 2
-	act2 = np.zeros((states, states))
-	for i in range(0, states):
-		if i == (states - 1):
-			act2[i][0] = 0.5
-			act2[i][i] = 0.5
-		else:
-			act2[i][i] = 0.5
-			act2[i][i+1] = 0.5
-	ex0[2] = act2
-	'''
-	T = rf.load_MDP('MDP1.csv', states)
-	for i in range(len(T)):	
-		ex0[i+1] = T[i]
-	return ex0
-
-
-def expert1_init(states):
-	ex1 = defaultdict(list)
-	'''
-	# Action 1
-	act1 = np.zeros((states, states))
-	for i in range(0, states):
-		if i == (states - 1):
-			act1[i][0] = 0.5
-			act1[i][i] = 0.5
-		else:
-			act1[i][i] = 0.5
-			act1[i][i + 1] = 0.5
-	ex1[1] = act1
-
-	# Action 2
-	act2 = np.zeros((states, states))
-	for i in range(0, states):
-		act2[i][i] = 1
-	ex1[2] = act2
-	'''
-	T = rf.load_MDP('MDP2.csv', states)
-	for i in range(len(T)):
-		ex1[i+1] = T[i]
-	return ex1
-
-
 def expert_init(filename, states):
 	ex = defaultdict(list)
 	T = rf.load_MDP(filename, states)
@@ -70,11 +18,6 @@ def expert_init(filename, states):
 def policy_init(states):
 	num_policies = 8
 	policy = np.zeros((num_policies, states))
-	'''
-	policy[0] = [1, 1, 1, 1]
-	policy[1] = [2, 2, 2, 2]
-	policy[2] = [1, 2, 1, 2]
-	'''
 	policy[0] = [4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1] # if size is small, then first enlarge. if size is large, then plant.
 	policy[1] = [1, 1, 1, 1, 1, 1, 4, 1, 4, 1, 4, 1] # if plant is low, then first plant. Otherwise, enlarge and plant.
 	policy[2] = [4, 1, 4, 1, 4, 1, 3, 3, 2, 2, 2, 2] # if plant is low then, try to make it bigger either size and flw. Otherwise treat and control
@@ -87,19 +30,6 @@ def policy_init(states):
 
 
 def next_state(transition):
-	'''
-	states, threshold, count = len(transition), [], 0
-	choose = randint(1, 100)
-	for i in range(0, states):
-		if count == 100.0:
-			threshold.append(0)
-		else:
-			count += transition[i]*100
-			threshold.append(count)
-	for i in range(0, states):
-		if choose <= threshold[i]:
-			return i
-	'''
 	states, threshold, count = len(transition), [], 0
 	return np.random.choice(range(states), 1, p=transition)[0]
 
@@ -109,16 +39,12 @@ def simulator(s, policy, expert, reward):
 	action = policy[s]
 	transition = expert[action][s]   # returns transition function [1, 0, 0, 0]
 	s_next = next_state(transition)
+	r = reward[s_next] * transition[s_next]
 	return s_next, reward[s_next]
 
 
 def reward_init(states):
 	rewards = np.zeros(states)
-	'''
-	for i in range(0, states):
-		rewards[i] = 5 + i*5
-	'''
-	#rewards = [350,250,250,150,100,100,80,8060,40,40,20,20]
 	rewards = [2,3,4,5,6,7,10,11,12,13,14,15]
 	rewards = np.array(rewards)
 	return rewards

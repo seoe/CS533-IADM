@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 'USER DEFINED PARAMETERS'
 num_models = 4  # number of expert models
 num_states = 12  # number of states
-horizon = 10
+horizon = 15
 w = 20  # run sim(s, policy, h) w times for each policy
 h = 10
-real_world_expert = 0  # must be a one of the expert models
+real_world_expert = 1  # must be a one of the expert models
 
 # chooses expert model based on belief state distribution
 # returns expert model
@@ -61,8 +61,6 @@ def update_models(state, expert_models, p, num_models, state_rewards, real_world
 	for i in range(0, num_models):
 		next_state[i], _rewards[i] = sim.simulator(state, p, expert_models[i], state_rewards)
 
-	# opt_model = np.argmax(_rewards)
-	# return int(next_state[opt_model]), opt_model, _rewards
 	return int(next_state[real_world_expert]), _rewards
 
 
@@ -70,8 +68,7 @@ def update_models2(belief, state, expert_models, p, num_models, state_rewards):
 	_rewards = np.zeros(num_models)
 	next_state = np.zeros(num_models)
 	for i in range(0, num_models):
-		next_state[i], _rewards[i] = sim.simulator(state, p, expert_models[i], state_rewards)	
-	#print 'belief = ', belief
+		next_state[i], _rewards[i] = sim.simulator(state, p, expert_models[i], state_rewards)
 	return int(np.random.choice(next_state, 1, p=belief)[0])
 
 
@@ -80,26 +77,16 @@ def update_models3(belief, state, expert_models, p, num_models, state_rewards):
 	for i in range(0, num_models):
 		action = p[state]
 		transitions[i] = expert_models[i][action][state] * belief[i]
-	transition = sum(transitions)	
-	#print 'transitions = \n', transitions
-	#print 'transition = \n', transition
+	transition = sum(transitions)
 	return int(np.random.choice(range(num_states), 1, p=transition)[0])
 
 
 # updates belief distribution based on rewards returned from update_models()
 # returns updated belief distribution
-#def update_belief(belief, _rewards):
 def update_belief(belief, expert_models, num_models, state, action, next_state):
-	'''
-	norm_rewards = _rewards
-	sum = np.sum(norm_rewards)
-	norm_rewards = norm_rewards / sum
-	belief = (belief + norm_rewards) / 2
-	'''
 	expert_models_prob = np.zeros(num_models)
 	for i in range(0, num_models):
 		expert_models_prob[i] = expert_models[i][action][state][next_state]
-	#print 'expert_models_prob = \n', expert_models_prob
 	accu_blief = belief + np.multiply(expert_models_prob,belief)	
 	belief = accu_blief / sum(accu_blief)
 	return belief
@@ -115,14 +102,10 @@ if __name__ == '__main__':
 	trajectory[0] = state+1
 	
 	for hor in range(0, horizon):
-		# ex = _belief(belief, num_models)  # returns expert model to use -- based on belief distribution
-		p = policy_switching(state, expert_models, num_models, w, h, policy, state_rewards, belief)  # finds best policy from policy switching
-		
-		#next_state, reward_from_act = update_models(state, expert_models, policy[p], num_models, state_rewards, real_world_expert)  # applies policy to all experts
+		p = policy_switching(state, expert_models, num_models, w, h, policy, state_rewards, belief)  # finds best policy from policy switching		
+		action = policy[p][state]
 		next_state = update_models2(belief, state, expert_models, policy[p], num_models, state_rewards)
 		trajectory[hor+1] = next_state+1
-		#belief = update_belief(belief, reward_from_act)  # update belief
-		action = policy[p][state]
 		belief = update_belief(belief, expert_models, num_models, state, action, next_state)  # update belief
 		belief_history[hor+1] = belief		
 		
